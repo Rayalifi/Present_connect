@@ -1,0 +1,12 @@
+node_modules/
+.env
+dist/
+build/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+uploads/members/*
+!uploads/members/default-avatar.svg
+!uploads/members/.gitkeep

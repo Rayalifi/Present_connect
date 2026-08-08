@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #080E1E;
+    color: #E2E8F0;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B132B;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #243A73;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3B82F6;
+}
+
+/* Glassmorphism & UI Accents */
+.glass-panel {
+  background: rgba(16, 31, 66, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card {
+  background: rgba(22, 40, 84, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+}
+
+/* RFID Pulse Rings */
+@keyframes radar-ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animate-radar-1 {
+  animation: radar-ping 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+.animate-radar-2 {
+  animation: radar-ping 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.8s infinite;
+}
+
+.animate-radar-3 {
+  animation: radar-ping 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) 1.6s infinite;
+}
