@@ -9,6 +9,9 @@ export function SocketProvider({ children }) {
   const [isConnected, setIsConnected] = useState(false);
   const [latestScan, setLatestScan] = useState(null);
 
+  // Tambahan untuk registrasi kartu
+  const [latestRfidRegistration, setLatestRfidRegistration] = useState(null);
+
   useEffect(() => {
     const socketInstance = io(APP_CONFIG.SOCKET_URL, {
       transports: ['websocket', 'polling'],
@@ -26,10 +29,16 @@ export function SocketProvider({ children }) {
       setIsConnected(false);
     });
 
-    // Listen for live RFID scans
+    // RFID untuk absensi
     socketInstance.on('attendance:scanned', (data) => {
       console.log('[Real-time Scan Event]', data);
       setLatestScan(data);
+    });
+
+    // RFID untuk registrasi anggota
+    socketInstance.on('rfid:registration', (data) => {
+      console.log('[RFID Registration Event]', data);
+      setLatestRfidRegistration(data);
     });
 
     setSocket(socketInstance);
@@ -42,17 +51,29 @@ export function SocketProvider({ children }) {
   const value = {
     socket,
     isConnected,
+
+    // Attendance
     latestScan,
-    clearLatestScan: () => setLatestScan(null)
+    clearLatestScan: () => setLatestScan(null),
+
+    // Registration
+    latestRfidRegistration,
+    clearLatestRfidRegistration: () => setLatestRfidRegistration(null)
   };
 
-  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
+  return (
+    <SocketContext.Provider value={value}>
+      {children}
+    </SocketContext.Provider>
+  );
 }
 
 export function useSocket() {
   const context = useContext(SocketContext);
+
   if (!context) {
     throw new Error('useSocket must be used within a SocketProvider');
   }
+
   return context;
 }

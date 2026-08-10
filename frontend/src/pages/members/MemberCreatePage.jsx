@@ -1,6 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, UserPlus, Upload, Radio, Hash, User, Building2, GraduationCap } from 'lucide-react';
+import {
+  ArrowLeft,
+  UserPlus,
+  Upload,
+  Radio,
+  Hash,
+  User,
+  Building2,
+  GraduationCap
+} from 'lucide-react';
+import { useSocket } from '../../context/SocketContext';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
@@ -25,6 +35,66 @@ export function MemberCreatePage() {
 
   const navigate = useNavigate();
   const toast = useToast();
+
+  const {
+    latestRfidRegistration,
+    clearLatestRfidRegistration
+  } = useSocket();
+
+  useEffect(() => {
+    if (!latestRfidRegistration?.uid) {
+      return;
+    }
+
+    const uid = latestRfidRegistration.uid.trim().toUpperCase();
+
+    setFormData((prev) => ({
+      ...prev,
+      uid_rfid: uid
+    }));
+
+    // Hapus event setelah diproses
+    clearLatestRfidRegistration();
+
+    toast.success(
+      'Kartu RFID Terdeteksi',
+      `UID ${uid} berhasil dimasukkan otomatis.`
+    );
+  }, [
+    latestRfidRegistration,
+    clearLatestRfidRegistration,
+    toast
+  ]);
+
+  const { socket } = useSocket();
+  useEffect(() => {
+  if (!socket) return;
+
+  const handleRfidRegistration = (data) => {
+    if (!data?.uid) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      uid_rfid: data.uid.toUpperCase()
+    }));
+
+    setErrors((prev) => ({
+      ...prev,
+      uid_rfid: ''
+    }));
+
+    toast.success(
+      'Kartu RFID Terdeteksi',
+      `UID ${data.uid} berhasil dimasukkan otomatis.`
+    );
+  };
+
+  socket.on('rfid:registration', handleRfidRegistration);
+
+  return () => {
+    socket.off('rfid:registration', handleRfidRegistration);
+  };
+}, [socket, toast]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -185,11 +255,20 @@ export function MemberCreatePage() {
               id="uid_rfid"
               required
               value={formData.uid_rfid}
-              onChange={(e) => setFormData({ ...formData, uid_rfid: e.target.value })}
-              placeholder="Contoh: A3:7F:21:9C"
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  uid_rfid: e.target.value.toUpperCase()
+                })
+              }
+              placeholder="Tempelkan kartu RFID..."
               icon={Radio}
               error={errors.uid_rfid}
-              helperText="Tempelkan kartu ke reader atau ketik UID hex."
+              helperText={
+                formData.uid_rfid
+                  ? 'UID berhasil terbaca dari kartu RFID.'
+                  : 'Tempelkan kartu RFID ke reader untuk mengisi UID otomatis.'
+              }
             />
 
             <Select
