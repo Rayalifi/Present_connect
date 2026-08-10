@@ -6,6 +6,8 @@ const { successResponse, errorResponse } = require('../utils/responseHelper');
 
 const COOLDOWN_SECONDS = parseInt(process.env.COOLDOWN_SECONDS || '30', 10);
 
+let rfidMode = 'attendance';
+
 async function handleRfidScan(req, res, next) {
   try {
     const { uid } = req.body;
@@ -119,6 +121,45 @@ async function handleRfidScan(req, res, next) {
   }
 }
 
+async function getRfidMode(req, res, next) {
+  try {
+    return successResponse(res, 'Mode RFID berhasil diambil.', {
+      mode: rfidMode
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function setRfidMode(req, res, next) {
+  try {
+    const { mode } = req.body;
+
+    if (!mode || !['attendance', 'registration'].includes(mode)) {
+      return errorResponse(
+        res,
+        'Mode RFID tidak valid. Gunakan attendance atau registration.',
+        400,
+        'INVALID_RFID_MODE'
+      );
+    }
+
+    rfidMode = mode;
+
+    broadcastEvent('rfid:mode', {
+      mode: rfidMode,
+      changedAt: new Date().toISOString()
+    });
+
+    return successResponse(res, 'Mode RFID berhasil diubah.', {
+      mode: rfidMode
+    });
+
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function handleRfidRead(req, res, next) {
   try {
     const { uid } = req.body;
@@ -150,5 +191,7 @@ async function handleRfidRead(req, res, next) {
 
 module.exports = {
   handleRfidScan,
-  handleRfidRead
+  handleRfidRead,
+  getRfidMode,
+  setRfidMode
 };
