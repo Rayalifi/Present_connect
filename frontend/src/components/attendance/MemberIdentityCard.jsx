@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Cpu, CheckCircle2, QrCode, Radio } from 'lucide-react';
 import { formatDateIndo, formatTimeIndo } from '../../utils/dateFormatter';
+import { MemberAvatar } from '../ui/MemberAvatar';
 
 export function MemberIdentityCard({
   member,
@@ -63,13 +64,11 @@ export function MemberIdentityCard({
       <div className="flex flex-col items-center justify-center mb-5">
         <div className="relative">
           <div className="w-28 h-28 rounded-2xl p-1 bg-gradient-to-tr from-blue-500 via-cyan-400 to-indigo-500 shadow-xl overflow-hidden">
-            <img
-              src={member.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80'}
-              alt={member.name}
-              className="w-full h-full object-cover rounded-xl bg-slate-800"
-              onError={(e) => {
-                e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
-              }}
+            <MemberAvatar
+              photo={member.photo}
+              name={member.name}
+              size="lg"
+              className="w-full h-full rounded-xl"
             />
           </div>
           <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-slate-950 p-1.5 rounded-full border-2 border-slate-900 shadow-md">

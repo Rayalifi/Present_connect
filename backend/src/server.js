@@ -6,7 +6,7 @@ const { initSocket } = require('./config/socket');
 
 dotenv.config();
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 async function startServer() {
   try {

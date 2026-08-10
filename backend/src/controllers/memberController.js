@@ -58,11 +58,19 @@ async function createMember(req, res, next) {
     }
 
     // Photo handling: uploaded file > photoUrl > default placeholder
-    let photo = '/uploads/members/default-avatar.png';
+    let photo = '/uploads/members/default-avatar.svg';
     if (req.file) {
       photo = `/uploads/members/${req.file.filename}`;
+      console.log('[Upload Debug] Member create photo received:');
+      console.log('  - filename:', req.file.filename);
+      console.log('  - path:', req.file.path);
+      console.log('  - destination:', req.file.destination);
+      console.log('  - relative url saved:', photo);
     } else if (photoUrl) {
       photo = photoUrl;
+      console.log('[Upload Debug] Member create using external photoUrl:', photoUrl);
+    } else {
+      console.log('[Upload Debug] Member create using default avatar:', photo);
     }
 
     const insertId = await Member.create({
@@ -111,8 +119,14 @@ async function updateMember(req, res, next) {
     let photo = currentMember.photo;
     if (req.file) {
       photo = `/uploads/members/${req.file.filename}`;
+      console.log('[Upload Debug] Member update photo received:');
+      console.log('  - filename:', req.file.filename);
+      console.log('  - path:', req.file.path);
+      console.log('  - destination:', req.file.destination);
+      console.log('  - relative url saved:', photo);
     } else if (photoUrl) {
       photo = photoUrl;
+      console.log('[Upload Debug] Member update using external photoUrl:', photoUrl);
     }
 
     const updated = await Member.update(id, {

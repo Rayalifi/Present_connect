@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS members (
     name VARCHAR(100) NOT NULL,
     generation VARCHAR(10) NOT NULL,
     department VARCHAR(50) NOT NULL,
-    photo VARCHAR(255) DEFAULT '/uploads/members/default-avatar.png',
+    photo VARCHAR(255) DEFAULT '/uploads/members/default-avatar.svg',
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

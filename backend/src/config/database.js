@@ -14,7 +14,7 @@ const inMemoryStore = {
       username: 'admin',
       email: 'admin@himatif.jgu.ac.id',
       // bcrypt hash for 'admin123'
-      password_hash: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+      password_hash: '$2a$10$Y9G03pyXSq8Xx.r0skASu.7cCcwaCDzslrPO9rUL3uiZyCx29.wOi',
       created_at: new Date()
     }
   ],
@@ -147,11 +147,66 @@ async function initializeDatabase() {
     const connection = await pool.getConnection();
     isConnectedToMysql = true;
     console.log('[DB] Terhubung sukses ke server MySQL database:', process.env.DB_NAME || 'himatif_connect');
+    
+    // Auto-seed initial admin and demo data if tables are empty
+    await autoSeedIfEmpty(connection);
+    
     connection.release();
   } catch (error) {
     isConnectedToMysql = false;
     console.warn('[DB Warning] MySQL Server tidak terdeteksi atau belum berjalan:', error.message);
     console.log('[DB Info] HIMATIF Connect mengaktifkan In-Memory Data Engine agar sistem tetap 100% fungsional dan siap pakai.');
+  }
+}
+
+async function autoSeedIfEmpty(connection) {
+  try {
+    const [adminRows] = await connection.execute('SELECT COUNT(*) as total FROM admins');
+    if (adminRows[0]?.total === 0) {
+      console.log('[DB Info] Mengisi data default admin ke MySQL...');
+      await connection.execute(
+        'INSERT INTO admins (id, username, email, password_hash) VALUES (?, ?, ?, ?)',
+        [1, 'admin', 'admin@himatif.jgu.ac.id', '$2a$10$Y9G03pyXSq8Xx.r0skASu.7cCcwaCDzslrPO9rUL3uiZyCx29.wOi']
+      );
+    }
+
+    const [memberRows] = await connection.execute('SELECT COUNT(*) as total FROM members');
+    if (memberRows[0]?.total === 0) {
+      console.log('[DB Info] Mengisi data master anggota awal ke MySQL...');
+      for (const m of inMemoryStore.members) {
+        await connection.execute(
+          'INSERT INTO members (id, uid_rfid, nim, name, generation, department, photo, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          [m.id, m.uid_rfid, m.nim, m.name, m.generation, m.department, m.photo, m.status]
+        );
+      }
+    }
+
+    const [settingRows] = await connection.execute('SELECT COUNT(*) as total FROM system_settings');
+    if (settingRows[0]?.total === 0) {
+      console.log('[DB Info] Mengisi pengaturan awal ke MySQL...');
+      await connection.execute(
+        'INSERT INTO system_settings (setting_key, setting_value) VALUES (?, ?), (?, ?), (?, ?), (?, ?)',
+        [
+          'cooldown_seconds', '30',
+          'organization_name', 'HIMATIF JGU',
+          'organization_subtext', 'Himpunan Mahasiswa Teknik Informatika - Jakarta Global University',
+          'attendance_active', 'true'
+        ]
+      );
+    }
+
+    const [attRows] = await connection.execute('SELECT COUNT(*) as total FROM attendance');
+    if (attRows[0]?.total === 0) {
+      console.log('[DB Info] Mengisi data absensi awal ke MySQL...');
+      for (const a of inMemoryStore.attendance) {
+        await connection.execute(
+          'INSERT INTO attendance (id, member_id, uid_rfid, attendance_date, attendance_time, status) VALUES (?, ?, ?, ?, ?, ?)',
+          [a.id, a.member_id, a.uid_rfid, a.attendance_date, a.attendance_time, a.status]
+        );
+      }
+    }
+  } catch (seedErr) {
+    console.warn('[DB Warning] Auto seed failed:', seedErr.message);
   }
 }
 
@@ -189,7 +244,11 @@ function executeInMemory(sql, params = []) {
 
   // 2. Members queries
   if (normalizedSql.startsWith('select') && normalizedSql.includes('from members')) {
-    if (normalizedSql.includes('uid_rfid =')) {
+    if (normalizedSql.includes('count(*)')) {
+      const activeCount = inMemoryStore.members.filter(m => m.status === 'active').length;
+      return [{ total: activeCount }];
+    }
+    if (normalizedSql.includes('uid_rfid')) {
       const uid = params[0]?.toUpperCase();
       const member = inMemoryStore.members.find(m => m.uid_rfid.toUpperCase() === uid);
       return member ? [member] : [];
@@ -219,7 +278,7 @@ function executeInMemory(sql, params = []) {
       name,
       generation,
       department,
-      photo: photo || '/uploads/members/default-avatar.png',
+      photo: photo || '/uploads/members/default-avatar.svg',
       status: status || 'active',
       created_at: new Date(),
       updated_at: new Date()

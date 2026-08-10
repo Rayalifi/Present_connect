@@ -19,9 +19,10 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { MemberAvatar } from '../../components/ui/MemberAvatar';
 import { memberService } from '../../services/memberService';
 import { useToast } from '../../context/ToastContext';
-import { DEPARTMENTS, GENERATIONS } from '../../utils/constants';
+import { DEPARTMENTS, GENERATIONS, getPhotoUrl } from '../../utils/constants';
 
 export function MembersListPage() {
   const [members, setMembers] = useState([]);
@@ -176,13 +177,10 @@ export function MembersListPage() {
                   <tr key={member.id} className="hover:bg-slate-800/40 transition-colors group">
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={member.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80'}
-                          alt={member.name}
-                          className="w-10 h-10 rounded-xl object-cover border border-slate-700 bg-slate-800"
-                          onError={(e) => {
-                            e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
-                          }}
+                        <MemberAvatar
+                          photo={member.photo}
+                          name={member.name}
+                          className="w-10 h-10 rounded-xl"
                         />
                         <div>
                           <p className="font-bold text-white group-hover:text-cyan-300 transition-colors">

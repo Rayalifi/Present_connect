@@ -3,9 +3,28 @@ export const APP_CONFIG = {
   ORG_NAME: 'HIMATIF JGU',
   ORG_FULL_NAME: 'Himpunan Mahasiswa Teknik Informatika',
   UNIVERSITY: 'Jakarta Global University',
-  API_BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-  SOCKET_URL: import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000',
+
+  API_BASE_URL:
+    import.meta.env.VITE_API_URL ||
+    'https://presentconnect-production.up.railway.app/api',
+
+  SOCKET_URL:
+    import.meta.env.VITE_SOCKET_URL ||
+    'https://presentconnect-production.up.railway.app',
+
   COOLDOWN_SECONDS: 30
+};
+
+export const getPhotoUrl = (photo) => {
+  if (!photo) return '';
+
+  if (photo.startsWith('http://') || photo.startsWith('https://')) {
+    return photo;
+  }
+
+  const apiBase = (APP_CONFIG.API_BASE_URL || '').replace(/\/api\/?$/, '');
+
+  return `${apiBase}${photo.startsWith('/') ? photo : `/${photo}`}`;
 };
 
 export const DEPARTMENTS = [

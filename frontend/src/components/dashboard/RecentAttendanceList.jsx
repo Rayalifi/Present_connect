@@ -4,6 +4,7 @@ import { Card, CardHeader } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
 import { formatTimeIndo } from '../../utils/dateFormatter';
+import { MemberAvatar } from '../ui/MemberAvatar';
 
 export function RecentAttendanceList({ scans = [], onSelectMember }) {
   return (
@@ -33,13 +34,10 @@ export function RecentAttendanceList({ scans = [], onSelectMember }) {
               className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 hover:bg-slate-800/40 transition-all cursor-pointer group"
             >
               <div className="flex items-center gap-3">
-                <img
-                  src={scan.photo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80'}
-                  alt={scan.name}
-                  className="w-10 h-10 rounded-xl object-cover border border-slate-700 group-hover:border-cyan-500/50"
-                  onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80';
-                  }}
+                <MemberAvatar
+                  photo={scan.photo}
+                  name={scan.name}
+                  className="w-10 h-10 rounded-xl"
                 />
                 <div>
                   <h4 className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">

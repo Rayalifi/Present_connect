@@ -7,7 +7,7 @@ import { Select } from '../../components/ui/Select';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { memberService } from '../../services/memberService';
 import { useToast } from '../../context/ToastContext';
-import { DEPARTMENTS, GENERATIONS } from '../../utils/constants';
+import { DEPARTMENTS, GENERATIONS, getPhotoUrl } from '../../utils/constants';
 
 export function MemberEditPage() {
   const { id } = useParams();
@@ -44,7 +44,7 @@ export function MemberEditPage() {
             status: m.status || 'active',
             photoUrl: m.photo || ''
           });
-          setPreviewUrl(m.photo);
+          setPreviewUrl(m.photo ? getPhotoUrl(m.photo) : null);
         }
       } catch (err) {
         console.error(err);
@@ -139,6 +139,10 @@ export function MemberEditPage() {
                   src={previewUrl}
                   alt="Preview"
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = getPhotoUrl('/uploads/members/default-avatar.svg');
+                  }}
                 />
               ) : (
                 <Upload className="w-8 h-8 text-slate-500" />

@@ -119,6 +119,36 @@ async function handleRfidScan(req, res, next) {
   }
 }
 
+async function handleRfidRead(req, res, next) {
+  try {
+    const { uid } = req.body;
+
+    if (!uid || typeof uid !== 'string' || uid.trim() === '') {
+      return errorResponse(
+        res,
+        'UID RFID tidak valid atau kosong.',
+        400,
+        'INVALID_UID'
+      );
+    }
+
+    const cleanUid = uid.trim().toUpperCase();
+
+    broadcastEvent('rfid:registration', {
+      uid: cleanUid,
+      scannedAt: new Date().toISOString()
+    });
+
+    return successResponse(res, 'UID RFID berhasil dibaca.', {
+      uid: cleanUid
+    });
+
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
-  handleRfidScan
+  handleRfidScan,
+  handleRfidRead
 };

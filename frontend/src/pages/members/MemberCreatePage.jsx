@@ -6,7 +6,7 @@ import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { memberService } from '../../services/memberService';
 import { useToast } from '../../context/ToastContext';
-import { DEPARTMENTS, GENERATIONS } from '../../utils/constants';
+import { DEPARTMENTS, GENERATIONS, getPhotoUrl } from '../../utils/constants';
 
 export function MemberCreatePage() {
   const [formData, setFormData] = useState({
@@ -102,9 +102,13 @@ export function MemberCreatePage() {
             <div className="w-24 h-24 rounded-2xl overflow-hidden bg-slate-800 border-2 border-dashed border-slate-700 flex items-center justify-center shrink-0">
               {previewUrl || formData.photoUrl ? (
                 <img
-                  src={previewUrl || formData.photoUrl}
+                  src={previewUrl || getPhotoUrl(formData.photoUrl)}
                   alt="Preview"
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = getPhotoUrl('/uploads/members/default-avatar.svg');
+                  }}
                 />
               ) : (
                 <Upload className="w-8 h-8 text-slate-500" />

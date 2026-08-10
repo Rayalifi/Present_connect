@@ -7,7 +7,7 @@
 -- 1. Seed Admin (password: admin123)
 -- bcrypt hash for 'admin123'
 INSERT INTO admins (id, username, email, password_hash) VALUES
-(1, 'admin', 'admin@himatif.jgu.ac.id', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi')
+(1, 'admin', 'admin@himatif.jgu.ac.id', '$2a$10$Y9G03pyXSq8Xx.r0skASu.7cCcwaCDzslrPO9rUL3uiZyCx29.wOi')
 ON DUPLICATE KEY UPDATE username=VALUES(username);
 
 -- 2. Seed Members

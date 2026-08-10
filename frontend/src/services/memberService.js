@@ -12,18 +12,12 @@ export const memberService = {
   },
 
   async create(formData) {
-    const isFormData = formData instanceof FormData;
-    const response = await api.post('/members', formData, {
-      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
-    });
+    const response = await api.post('/members', formData);
     return response.data;
   },
 
   async update(id, formData) {
-    const isFormData = formData instanceof FormData;
-    const response = await api.put(`/members/${id}`, formData, {
-      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
-    });
+    const response = await api.put(`/members/${id}`, formData);
     return response.data;
   },
 
