@@ -6,6 +6,9 @@ const { initSocket } = require('./config/socket');
 
 dotenv.config();
 
+// Konfigurasi trust proxy untuk deployment reverse proxy (Railway, Back4App, Render, Nginx)
+app.set('trust proxy', 1);
+
 const PORT = process.env.PORT || 8080;
 
 async function startServer() {

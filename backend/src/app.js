@@ -40,6 +40,7 @@ const generalLimiter = rateLimit({
   max: 500,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   message: {
     success: false,
     error: 'TOO_MANY_REQUESTS',
