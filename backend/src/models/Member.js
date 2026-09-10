@@ -86,7 +86,7 @@ class Member {
   }
 
   static async count() {
-    const rows = await query('SELECT COUNT(*) as total FROM members WHERE status = "active"');
+    const rows = await query('SELECT COUNT(*) as total FROM members WHERE status = ?', ['active']);
     return rows[0]?.total || 0;
   }
 }

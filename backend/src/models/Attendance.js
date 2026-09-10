@@ -99,7 +99,7 @@ class Attendance {
     const today = new Date().toISOString().split('T')[0];
 
     // Total active members
-    const memberRows = await query('SELECT COUNT(*) as total FROM members WHERE status = "active"');
+    const memberRows = await query('SELECT COUNT(*) as total FROM members WHERE status = ?', ['active']);
     const totalMembers = memberRows[0]?.total || 0;
 
     // Distinct members attended today
