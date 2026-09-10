@@ -30,17 +30,18 @@ Buka **Arduino IDE**, install library:
 #include <SPI.h>
 #include <MFRC522.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
 // ----------------------------------------------------
-// Konfigurasi Wi-Fi dan Server HIMATIF Connect
+// Konfigurasi Wi-Fi dan Server HIMATIF Connect (Back4App / Cloud)
 // ----------------------------------------------------
 const char* ssid     = "NAMA_WIFI_ANDA";
 const char* password = "PASSWORD_WIFI";
 
-// Ganti dengan IP Address lokal komputer server backend
-const char* serverUrl = "http://192.168.1.100:5000/api/rfid/scan";
+// URL Backend API Back4App (Gunakan https://)
+const char* serverUrl = "https://present-vt533vn3.b4a.run/api/rfid/scan";
 
 // Pin RC522
 #define RST_PIN  22
@@ -117,8 +118,11 @@ void sendUidToBackend(String uid) {
     return;
   }
 
+  WiFiClientSecure client;
+  client.setInsecure(); // Wajib untuk HTTPS (Back4App) agar tidak gagal verifikasi SSL
+
   HTTPClient http;
-  http.begin(serverUrl);
+  http.begin(client, serverUrl);
   http.addHeader("Content-Type", "application/json");
 
   // Siapkan payload JSON
