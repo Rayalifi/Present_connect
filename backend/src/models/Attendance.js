@@ -1,10 +1,23 @@
 const { query } = require('../config/database');
 
+function getJakartaDate() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+}
+
+function getJakartaTime() {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Jakarta',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).format(new Date());
+}
+
 class Attendance {
   static async record({ member_id, uid_rfid, status = 'Hadir' }) {
-    const now = new Date();
-    const attendance_date = now.toISOString().split('T')[0];
-    const attendance_time = now.toTimeString().split(' ')[0]; // HH:MM:SS
+    const attendance_date = getJakartaDate();
+    const attendance_time = getJakartaTime();
 
     const result = await query(
       'INSERT INTO attendance (member_id, uid_rfid, attendance_date, attendance_time, status) VALUES (?, ?, ?, ?, ?)',
@@ -22,7 +35,7 @@ class Attendance {
   }
 
   static async findTodayByMemberId(memberId) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getJakartaDate();
     const rows = await query(
       'SELECT * FROM attendance WHERE member_id = ? AND attendance_date = ? ORDER BY id DESC LIMIT 1',
       [memberId, today]
@@ -31,7 +44,7 @@ class Attendance {
   }
 
   static async getTodayLogs() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getJakartaDate();
     const sql = `
       SELECT a.*, m.name, m.nim, m.generation, m.department, m.photo 
       FROM attendance a
@@ -96,7 +109,7 @@ class Attendance {
   }
 
   static async getSummaryStats() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getJakartaDate();
 
     // Total active members
     const memberRows = await query('SELECT COUNT(*) as total FROM members WHERE status = ?', ['active']);

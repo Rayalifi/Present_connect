@@ -6,11 +6,11 @@ export const APP_CONFIG = {
 
   API_BASE_URL:
     import.meta.env.VITE_API_URL ||
-    'https://presentconnect-production.up.railway.app/api',
+    'https://present-vt533vn3.b4a.run/api',
 
   SOCKET_URL:
     import.meta.env.VITE_SOCKET_URL ||
-    'https://presentconnect-production.up.railway.app',
+    'https://present-vt533vn3.b4a.run',
 
   COOLDOWN_SECONDS: 30
 };

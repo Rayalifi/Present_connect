@@ -111,9 +111,13 @@ async function handleRfidScan(req, res, next) {
       type: 'SUCCESS_ATTENDANCE'
     });
 
-    // Broadcast updated stats to dashboard
-    const updatedStats = await Attendance.getSummaryStats();
-    broadcastEvent('attendance:stats', updatedStats);
+    // Broadcast updated stats to dashboard (non-blocking)
+    try {
+      const updatedStats = await Attendance.getSummaryStats();
+      broadcastEvent('attendance:stats', updatedStats);
+    } catch (statsErr) {
+      console.warn('[Stats Broadcast Warning]', statsErr.message);
+    }
 
     return res.status(200).json(responsePayload);
   } catch (err) {

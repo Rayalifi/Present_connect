@@ -39,7 +39,15 @@ class Member {
   static async findByUid(uid) {
     if (!uid) return null;
     const normalizedUid = uid.trim().toUpperCase();
-    const rows = await query('SELECT * FROM members WHERE UPPER(uid_rfid) = ? LIMIT 1', [normalizedUid]);
+    const cleanRaw = normalizedUid.replace(/[:\s-]/g, '');
+
+    const sql = `
+      SELECT * FROM members 
+      WHERE UPPER(uid_rfid) = ? 
+         OR REPLACE(REPLACE(REPLACE(UPPER(uid_rfid), ':', ''), '-', ''), ' ', '') = ?
+      LIMIT 1
+    `;
+    const rows = await query(sql, [normalizedUid, cleanRaw]);
     return rows[0] || null;
   }
 

@@ -328,8 +328,11 @@ function executeInMemory(sql, params = []) {
       return [{ total: activeCount }];
     }
     if (normalizedSql.includes('uid_rfid')) {
-      const uid = params[0]?.toUpperCase();
-      const member = inMemoryStore.members.find(m => m.uid_rfid.toUpperCase() === uid);
+      const cleanParam = params[0]?.toUpperCase().replace(/[:\s-]/g, '');
+      const member = inMemoryStore.members.find(
+        m => m.uid_rfid.toUpperCase() === params[0]?.toUpperCase() ||
+             m.uid_rfid.toUpperCase().replace(/[:\s-]/g, '') === cleanParam
+      );
       return member ? [member] : [];
     }
     if (normalizedSql.includes('id =')) {
