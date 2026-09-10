@@ -56,6 +56,9 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Static file serving for member photos
 app.use('/uploads', express.static(BASE_UPLOADS_DIR));
+app.use('/uploads', (req, res) => {
+  res.status(404).set('Content-Type', 'image/svg+xml').send('<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>');
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -71,6 +74,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/rfid', rfidRoutes);
+app.use('/rfid', rfidRoutes); // Alias agar ESP32 tetap bekerja jika memanggil /rfid/scan tanpa /api
 app.use('/api/stats', statsRoutes);
 
 // Catch 404 and Forward to Error Handler
