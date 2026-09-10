@@ -14,6 +14,10 @@ const { notFoundHandler, globalErrorHandler } = require('./middleware/errorMiddl
 
 const app = express();
 
+// Trust reverse proxy headers (Back4App, Railway, Heroku, Nginx)
+// Resolves express-rate-limit 'X-Forwarded-For' ValidationError
+app.set('trust proxy', 1);
+
 // Security Headers
 app.use(
   helmet({

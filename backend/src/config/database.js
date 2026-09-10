@@ -131,27 +131,42 @@ const inMemoryStore = {
 
 async function initializeDatabase() {
   try {
-    pool = mysql.createPool({
-      host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
-      port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3306),
-      user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
-      password: process.env.DB_PASSWORD ?? process.env.MYSQLPASSWORD ?? '',
-      database: process.env.DB_NAME || 'himatif_connect',
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0,
-      enableKeepAlive: true,
-      keepAliveInitialDelay: 0,
-      ssl: {
-        rejectUnauthorized: false
-      }
-    });
+    const dbUri = process.env.DATABASE_URL || process.env.MYSQL_URL;
+    const poolConfig = dbUri
+      ? {
+          uri: dbUri,
+          waitForConnections: true,
+          connectionLimit: 10,
+          queueLimit: 0,
+          enableKeepAlive: true,
+          keepAliveInitialDelay: 0,
+          ssl: {
+            rejectUnauthorized: false
+          }
+        }
+      : {
+          host: process.env.DB_HOST || process.env.MYSQLHOST || 'localhost',
+          port: Number(process.env.DB_PORT || process.env.MYSQLPORT || 3306),
+          user: process.env.DB_USER || process.env.MYSQLUSER || 'root',
+          password: process.env.DB_PASSWORD ?? process.env.MYSQLPASSWORD ?? '',
+          database: process.env.DB_NAME || 'himatif_connect',
+          waitForConnections: true,
+          connectionLimit: 10,
+          queueLimit: 0,
+          enableKeepAlive: true,
+          keepAliveInitialDelay: 0,
+          ssl: {
+            rejectUnauthorized: false
+          }
+        };
+
+    pool = mysql.createPool(poolConfig);
 
     const connection = await pool.getConnection();
     isConnectedToMysql = true;
     console.log('[DB] Terhubung sukses ke server MySQL database:', process.env.DB_NAME || 'himatif_connect');
     
-    // Auto-seed initial admin and demo data if tables are empty
+    // Auto-create tables and seed initial admin/demo data if empty
     await autoSeedIfEmpty(connection);
     
     connection.release();
@@ -164,6 +179,63 @@ async function initializeDatabase() {
 
 async function autoSeedIfEmpty(connection) {
   try {
+    // 1. Pastikan tabel-tabel utama sudah ada di database (CREATE TABLE IF NOT EXISTS)
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS admins (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(50) NOT NULL UNIQUE,
+        email VARCHAR(100) NOT NULL UNIQUE,
+        password_hash VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS members (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        uid_rfid VARCHAR(50) NOT NULL UNIQUE,
+        nim VARCHAR(20) NOT NULL UNIQUE,
+        name VARCHAR(100) NOT NULL,
+        generation VARCHAR(10) NOT NULL,
+        department VARCHAR(50) NOT NULL,
+        photo VARCHAR(255) DEFAULT '/uploads/members/default-avatar.svg',
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_uid_rfid (uid_rfid),
+        INDEX idx_nim (nim),
+        INDEX idx_department (department),
+        INDEX idx_generation (generation)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS system_settings (
+        setting_key VARCHAR(50) PRIMARY KEY,
+        setting_value TEXT NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await connection.execute(`
+      CREATE TABLE IF NOT EXISTS attendance (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        member_id INT NOT NULL,
+        uid_rfid VARCHAR(50) NOT NULL,
+        attendance_date DATE NOT NULL,
+        attendance_time TIME NOT NULL,
+        status VARCHAR(30) DEFAULT 'Hadir',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT fk_attendance_member FOREIGN KEY (member_id) 
+            REFERENCES members(id) 
+            ON DELETE CASCADE 
+            ON UPDATE CASCADE,
+        INDEX idx_attendance_date (attendance_date),
+        INDEX idx_member_date (member_id, attendance_date)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    // 2. Isi default admin jika tabel admin kosong
     const [adminRows] = await connection.execute('SELECT COUNT(*) as total FROM admins');
     if (adminRows[0]?.total === 0) {
       console.log('[DB Info] Mengisi data default admin ke MySQL...');
@@ -173,6 +245,7 @@ async function autoSeedIfEmpty(connection) {
       );
     }
 
+    // 3. Isi data master anggota awal jika kosong
     const [memberRows] = await connection.execute('SELECT COUNT(*) as total FROM members');
     if (memberRows[0]?.total === 0) {
       console.log('[DB Info] Mengisi data master anggota awal ke MySQL...');
@@ -184,6 +257,7 @@ async function autoSeedIfEmpty(connection) {
       }
     }
 
+    // 4. Isi pengaturan awal jika kosong
     const [settingRows] = await connection.execute('SELECT COUNT(*) as total FROM system_settings');
     if (settingRows[0]?.total === 0) {
       console.log('[DB Info] Mengisi pengaturan awal ke MySQL...');
@@ -198,6 +272,7 @@ async function autoSeedIfEmpty(connection) {
       );
     }
 
+    // 5. Isi absensi awal jika kosong
     const [attRows] = await connection.execute('SELECT COUNT(*) as total FROM attendance');
     if (attRows[0]?.total === 0) {
       console.log('[DB Info] Mengisi data absensi awal ke MySQL...');
@@ -209,9 +284,10 @@ async function autoSeedIfEmpty(connection) {
       }
     }
   } catch (seedErr) {
-    console.warn('[DB Warning] Auto seed failed:', seedErr.message);
+    console.warn('[DB Warning] Auto schema/seed failed:', seedErr.message);
   }
 }
+
 
 async function query(sql, params = []) {
   if (isConnectedToMysql && pool) {
